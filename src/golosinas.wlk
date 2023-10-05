@@ -14,6 +14,8 @@ object limon { }
  
 class Golosina{
 	var peso
+	var sabor
+	method sabor() = sabor
 	method peso() = peso
 	method libreGluten() = true 
 }
@@ -21,21 +23,18 @@ class Golosina{
 class Bombon inherits Golosina{
 	method precio() { return 5 }
 	method mordisco() { peso = peso * 0.8 - 1 }
-	method sabor() { return frutilla }
 }
 
 
 class Alfajor inherits Golosina{
 	method precio() { return 12 }
 	method mordisco() { peso = peso * 0.8 }
-	method sabor() { return chocolate }
 	override method libreGluten() { return false }
 }
 
 class Caramelo inherits Golosina{
 	method precio() { return 12 }
 	method mordisco() { peso = peso - 1 }
-	method sabor() { return frutilla }
 }
 
 
@@ -46,7 +45,6 @@ class Chupetin inherits Golosina{
 			peso = peso * 0.9
 		}
 	}
-	method sabor() { return naranja }
 }
 
 class Oblea  inherits Golosina {
@@ -59,8 +57,7 @@ class Oblea  inherits Golosina {
 			// pierde el 25% del peso
 			peso = peso - (peso * 0.25)
 		}
-	}	
-	method sabor() { return vainilla }
+	}
 	override method libreGluten() { return false }
 }
 
@@ -74,7 +71,6 @@ class Chocolatin  inherits Golosina{
 	method precio() { return peso * 0.50 }
 	override method peso() { return (peso - comido).max(0) }
 	method mordisco() { comido = comido + 2 }
-	method sabor() { return chocolate }
 	override method libreGluten() { return false }
 
 }
@@ -90,18 +86,18 @@ class GolosinaBaniada inherits Golosina{
 		golosinaInterior.mordisco()
 		pesoBanio = (pesoBanio - 2).max(0) 
 	}	
-	method sabor() { return golosinaInterior.sabor() }
+	override method sabor() { return golosinaInterior.sabor() }
 	override method libreGluten() { return golosinaInterior.libreGluten() }	
 }
 
 
-class Tuttifrutti   inherits Golosina{
+class Tuttifrutti inherits Golosina{
 	var libreDeGluten
 	const sabores = [frutilla, chocolate, naranja]
 	var saborActual = 0
 	
 	method mordisco() { saborActual += 1 }	
-	method sabor() { return sabores.get(saborActual % 3) }	
+	override method sabor() { return sabores.get(saborActual % 3) }	
 
 	method precio() { return (if(self.libreGluten()) 7 else 10) }
 	override method peso() { return 5 }
@@ -110,6 +106,7 @@ class Tuttifrutti   inherits Golosina{
 }
 
 class BombonDuro inherits Bombon{
+	
 	override method mordisco(){
 		peso = 0.max(peso - 1)
 	}
@@ -128,3 +125,96 @@ class BombonDuro inherits Bombon{
 		return salida
 	}
 }
+
+/* Indicar en cuál clase se encuentra el método que se
+   ejecuta en cada caso, detallando el recorrido que realiza
+   el method lookup.
+  
+  	var bombon = new Bombon() 
+	bombon.mordisco() == Bombon
+	bombon.peso() == Golosina
+	bombon = new BombonDuro() 
+	bombon.mordisco() == Bombon
+	bombon.peso() == Golosina
+*/
+
+class CarameloCorazonDeChocolate inherits Caramelo{
+	override method mordisco() {
+		super()
+		sabor = chocolate
+	}
+	override method precio(){return super() + 1}
+}
+
+/* Indicar en cuál clase se encuentra el método que se
+   ejecuta en cada caso, detallando el recorrido que realiza
+   el method lookup.
+  
+  	var caramelo = new Caramelo() 
+	caramelo.mordisco() == Caramelo
+	caramelo.peso() == Golosina
+	caramelo.sabor() == Golosina
+	caramelo = new CarameloRelleno() 
+	caramelo.mordisco() == CarameloRelleno
+	caramelo.peso() == Golosina
+	caramelo.sabor() == Golosina
+*/
+
+class ObleaCrujiente inherits Oblea{
+	var cantidadDeMordiscos = 0
+	
+	method cantidadDeMordisco(){return cantidadDeMordiscos}
+	
+	override method mordisco(){
+		super()
+		cantidadDeMordiscos += 1
+		if(cantidadDeMordiscos <= 3){
+			peso -= 3
+		}
+	}
+	
+	method estaDebil(){
+		return cantidadDeMordiscos > 3
+	}
+}
+
+/* Indicar en cuál clase se encuentra el método que se
+   ejecuta en cada caso, detallando el recorrido que realiza
+   el method lookup.
+  
+  	var oblea = new Oblea() 
+	oblea.mordisco() == Oblea
+	oblea.peso() == Golosina
+	oblea = new ObleaCrujiente() 
+	oblea.mordisco() == ObleaCrujiente() 
+	oblea.peso() == Golosina
+*/
+
+class ChocolatinVip inherits Chocolatin{
+	const humedad = 0
+	
+	method humedad(){return humedad}
+	
+	override method peso(){
+		return super()*1 + humedad
+	}
+}
+
+class ChocolatinPremium inherits ChocolatinVip{
+	
+	override method humedad(){return super() / 2}
+}
+
+
+/* Indicar en cuál clase se encuentra el método que se
+   ejecuta en cada caso, detallando el recorrido que realiza
+   el method lookup.
+  
+  	var chocolatin = new Chocolatin() 
+	chocolatin.peso() == Golosina
+	chocolatin = new ChocolatinVIP() 
+	chocolatin.peso() == ChocolatinVIP
+	chocolatin = new ChocolatinPremium() 
+	chocolatin.peso() == ChocolatinVIP
+*/
+
